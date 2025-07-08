@@ -11,8 +11,8 @@
 .data
     msg1 db 13,10, 'Ingrese la primera cadena: $'
     msg2 db 13,10, 'Ingrese la segunda cadena: $'
-    msgSI db 13,10, 'Son anagramas', 13,10, '$'
-    msgNO db 13,10, 'No son anagramas', 13,10, '$'
+    msgSI db 13,10, 'Son anagramas$'
+    msgNO db 13,10, 'No son anagramas$'
     msgRepetir db 13,10, 'Quiere probar con otras cadenas? (S/N): $'
 
     cad1 db 46 dup('$')     ; Hasta 45 caracteres + '$'
@@ -26,6 +26,7 @@ main:
     mov ds, ax
 
 inicio_programa:
+call limpiar_pantalla
     ; --- Entrada de la primera cadena ---
     lea dx, msg1
     call print_str
@@ -64,29 +65,69 @@ inicio_programa:
     jne mostrar_no
 
 mostrar_si:
-    call color_verde
-    lea dx, msgSI
-    call print_str
+     lea si, msgSI
+    mov bl, 0x0A      ; Verde claro
+    call imprimir_bios_color
     jmp repetir
 
 mostrar_no:
-    call color_rojo
-    lea dx, msgNO
-    call print_str
+    lea si, msgNO
+    mov bl, 0x0C      ; Rojo claro
+    call imprimir_bios_color
 
 repetir:
-    call color_blanco
-    lea dx, msgRepetir
-    call print_str
+    lea si, msgRepetir
+    mov bl, 0x0F      ; Blanco
+    call imprimir_bios_color
+
     mov ah, 1
     int 21h
     cmp al, 'S'
+    
+
     je inicio_programa
     cmp al, 's'
-    je inicio_programa
-    mov ah, 4ch
-    int 21h
 
+    je inicio_programa
+    mov ah, 4Ch
+    int 21h
+    
+; ----------------------------
+; Subrutina: imprimir_bios_color
+; Usa int 10h para imprimir cadena con color
+; Entrada: DS:SI -> cadena terminada en '$', BL = color
+imprimir_bios_color:
+    push ax
+    push bx
+    push cx
+    push dx
+
+    mov bh, 0         ; página de video
+    xor dh, dh        ; fila = 0
+    xor dl, dl        ; columna = 0
+.next:
+    lodsb
+    cmp al, '$'
+    je .end
+
+    ; Imprimir el carácter con color
+    mov ah, 09h
+    mov cx, 1
+    int 10h
+
+    ; Avanzar el cursor (columna)
+    inc dl
+    mov ah, 02h        ; función: mover cursor
+    int 10h
+
+    jmp .next
+
+.end:
+    pop dx
+    pop cx
+    pop bx
+    pop ax
+    ret
 ; ----------------------------
 ; Subrutina: leer_cadena
 ; Entrada: DI apunta al destino
@@ -216,31 +257,14 @@ comparar:
     mov al, 0
     ret
 
-; ----------------------------
-; Subrutinas para color en DOS (emu8086)
 
-color_verde:
-    mov ah, 09h
-    mov dx, offset msgSI ; usar color verde: fondo negro, texto verde
-    mov bh, 0
-    mov bl, 2
-    mov cx, 1
-    ret
-
-color_rojo:
-    mov ah, 09h
-    mov dx, offset msgNO
-    mov bh, 0
-    mov bl, 4
-    mov cx, 1
-    ret
-
-color_blanco:
-    mov ah, 09h
-    mov dx, offset msgRepetir
-    mov bh, 0
-    mov bl, 7
-    mov cx, 1
+limpiar_pantalla:
+    mov ah, 06h         ; función: scroll up
+    mov al, 0           ; número de líneas a desplazar (0 = limpiar toda la pantalla)
+    mov bh, 07h         ; atributo: fondo negro, texto gris claro
+    mov cx, 0           ; esquina superior izquierda (fila=0, col=0)
+    mov dx, 184Fh       ; esquina inferior derecha (fila=24, col=79)
+    int 10h
     ret
 
 end main
