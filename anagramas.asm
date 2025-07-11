@@ -8,6 +8,8 @@
 
 .model small
 .stack 100h
+
+
 .data
     msg1 db 13,10, 'Ingrese la primera cadena: $'
     msg2 db 13,10, 'Ingrese la segunda cadena: $'
@@ -95,14 +97,15 @@ repetir:
 ; ----------------------------
 ; Subrutina: imprimir_bios_color
 ; Usa int 10h para imprimir cadena con color
-; Entrada: DS:SI -> cadena terminada en '$', BL = color
+; Entrada: DS:SI -> cadena terminada en '$', BL = color 
+
 imprimir_bios_color:
     push ax
     push bx
     push cx
     push dx
 
-    mov bh, 0         ; página de video
+    mov bh, 0         ; pagina de video
     xor dh, dh        ; fila = 0
     xor dl, dl        ; columna = 0
 .next:
@@ -117,7 +120,7 @@ imprimir_bios_color:
 
     ; Avanzar el cursor (columna)
     inc dl
-    mov ah, 02h        ; función: mover cursor
+    mov ah, 02h        ; funcion: mover cursor
     int 10h
 
     jmp .next
@@ -127,11 +130,13 @@ imprimir_bios_color:
     pop cx
     pop bx
     pop ax
-    ret
+    ret    
+    
 ; ----------------------------
 ; Subrutina: leer_cadena
 ; Entrada: DI apunta al destino
-; Salida: Cadena en DI terminada con '$'
+; Salida: Cadena en DI terminada con '$' 
+
 leer_cadena:
     mov cx, 0
 .leer_loop:
@@ -153,6 +158,7 @@ fin_lectura:
 ; ----------------------------
 ; Subrutina: print_str
 ; Muestra cadena terminada en '$'
+
 print_str:
     mov ah, 09h
     int 21h
@@ -160,7 +166,8 @@ print_str:
 
 ; ----------------------------
 ; Subrutina: copiar_y_normalizar
-; Copia de SI a DI, eliminando espacios y pasando a minï¿½scula
+; Copia de SI a DI, eliminando espacios y pasando a minuscula
+
 copiar_y_normalizar:
 .siguiente:
     mov al, [si]
@@ -181,7 +188,8 @@ copiar_y_normalizar:
 
 ; ----------------------------
 ; Subrutina: a_minuscula
-; Convierte AL a minï¿½scula si es mayï¿½scula
+; Convierte AL a minuscula si es mayuscula 
+
 a_minuscula:
     cmp al, 'A'
     jb .retornar
@@ -194,6 +202,7 @@ a_minuscula:
 ; ----------------------------
 ; Subrutina: ordenar
 ; Ordena cadena en SI (bubble sort)
+
 ordenar:
     push di
     push cx
@@ -236,7 +245,8 @@ ordenar:
 ; ----------------------------
 ; Subrutina: comparar
 ; Compara dos cadenas (SI y DI)
-; Devuelve AL = 1 si iguales, 0 si no
+; Devuelve AL = 1 si iguales, 0 si no 
+
 comparar:
 .loop:
     mov al, [si]
@@ -259,7 +269,7 @@ comparar:
 
 
 limpiar_pantalla:
-    mov ah, 06h         ; función: scroll up
+    mov ah, 06h         ; funcion: scroll up
     mov al, 0           ; número de líneas a desplazar (0 = limpiar toda la pantalla)
     mov bh, 07h         ; atributo: fondo negro, texto gris claro
     mov cx, 0           ; esquina superior izquierda (fila=0, col=0)
